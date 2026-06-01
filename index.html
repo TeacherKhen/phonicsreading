@@ -860,7 +860,6 @@
         };
 
         // Grid internal representation array to scan dynamic rows/columns
-        // Layout: 6 rows x 7 columns (for Board 1)
         let board1InternalGrid = Array(6).fill(null).map(() => Array(7).fill(0));
 
         const miniDiceDotMaps = {
@@ -871,6 +870,28 @@
         let timerDuration = 60; 
         let timerCountdownValue = 60;
         let timerIntervalTracker = null;
+
+        // --- LOCALSTORAGE PERSISTENCE ENGINE ---
+        function saveGameDataToLocalStorage() {
+            localStorage.setItem("readingRollQuest_words", JSON.stringify(currentGameState.defaultWords));
+            localStorage.setItem("readingRollQuest_styleMode", currentGameState.selectedStyleMode);
+        }
+
+        function loadGameDataFromLocalStorage() {
+            const savedWords = localStorage.getItem("readingRollQuest_words");
+            const savedMode = localStorage.getItem("readingRollQuest_styleMode");
+            
+            if (savedWords) {
+                try {
+                    currentGameState.defaultWords = JSON.parse(savedWords);
+                } catch (e) {
+                    console.error("Error loading parsed custom words array", e);
+                }
+            }
+            if (savedMode) {
+                currentGameState.selectedStyleMode = parseInt(savedMode, 10);
+            }
+        }
 
         // --- AUDIO ENGINE LOGIC CONTROLLER ---
         const AudioController = {
@@ -924,10 +945,17 @@
                         document.getElementById("text-words-input").value = parsedData.defaultWords.join("\n");
                         if (parsedData.selectedStyleMode) {
                             currentGameState.selectedStyleMode = parsedData.selectedStyleMode;
-                            localStorage.setItem("readingRollQuest_styleMode", parsedData.selectedStyleMode);
                         }
+                        
+                        // Permanently lock file data into browser storage
+                        saveGameDataToLocalStorage();
+                        
                         resetWholeGame();
                         closeModal('modal-settings');
+                        
+                        // Skip initial mode screen if we already loaded configuration presets
+                        document.getElementById("modal-board-select").classList.remove("active");
+                        
                         alert("🎉 Word data loaded completely into the current board matrix!");
                     } else {
                         alert("⚠️ JSON layout standard error.");
@@ -960,20 +988,23 @@
         // --- GAMEPLAY CONFIGURATION STYLE SELECTORS ---
         function selectBoardStyleMode(modeNum) {
             currentGameState.selectedStyleMode = modeNum;
-            localStorage.setItem("readingRollQuest_styleMode", modeNum);
+            saveGameDataToLocalStorage();
             
-            const subtitle = document.getElementById("game-subtitle-text");
-            if(modeNum === 1) {
-                subtitle.innerText = "Roll the dice. Read the word. Connect three dots.";
-            } else {
-                subtitle.innerText = "Trophy Race: Share grid spaces and race to hit the trophy peak!";
-            }
-            
+            updateSubtitleTextGraphic();
             updateSettingsActiveButtonHighlight();
             closeModal('modal-board-select');
             openModal('modal-welcome-splash');
             configureWelcomeRulesUIPopup(modeNum);
             resetWholeGame();
+        }
+
+        function updateSubtitleTextGraphic() {
+            const subtitle = document.getElementById("game-subtitle-text");
+            if (currentGameState.selectedStyleMode === 1) {
+                subtitle.innerText = "Roll the dice. Read the word. Connect three dots.";
+            } else {
+                subtitle.innerText = "Trophy Race: Share grid spaces and race to hit the trophy peak!";
+            }
         }
 
         function updateSettingsActiveButtonHighlight() {
@@ -1017,11 +1048,8 @@
         function calculateBoard1LinePoints(teamId) {
             let totalPoints = 0;
             const rows = 6;
-            const cols = 7; // Remember column 0 is the dice box indicator, column 1-6 are words.
+            const cols = 7; 
             
-            // Keeps track of which blocks are counted inside confirmed tracks to prevent overlap bugs
-            let calculatedMap = Array(rows).fill(null).map(() => Array(cols).fill(false));
-
             function scanDirection(startR, startC, deltaR, deltaC) {
                 let currentLineLength = 0;
                 let r = startR;
@@ -1032,7 +1060,7 @@
                         currentLineLength++;
                     } else {
                         if(currentLineLength >= 3) {
-                            totalPoints += (currentLineLength - 2); // 3 length = 1pt, 4 length = 2pts, etc.
+                            totalPoints += (currentLineLength - 2); 
                         }
                         currentLineLength = 0;
                     }
@@ -1096,7 +1124,6 @@
                             box.appendChild(textSpan);
                             wordIndex++;
                             
-                            // Re-bind click event to process live color switching and calculation
                             box.onclick = () => {
                                 if(!box.classList.contains("claimed-t1") && !box.classList.contains("claimed-t2")) {
                                     if(currentGameState.activeTeam === 1) {
@@ -1109,7 +1136,6 @@
                                     runBoard1PointRecheckSequence();
                                     shiftActiveTeamTurnSequence();
                                 } else {
-                                    // If clicked again, clear it back out safely
                                     box.classList.remove("claimed-t1", "claimed-t2");
                                     board1InternalGrid[r][c] = 0;
                                     runBoard1PointRecheckSequence();
@@ -1120,7 +1146,6 @@
                     }
                 }
             } else {
-                // Board 2: Trophy Track Configuration
                 container.classList.add("mode-board2");
                 for(let r = 0; r < 6; r++) {
                     for(let c = 0; c < 8; c++) {
@@ -1190,6 +1215,10 @@
             const lines = document.getElementById("text-words-input").value.split("\n").map(w => w.trim()).filter(w => w.length > 0);
             if(lines.length > 0) {
                 currentGameState.defaultWords = lines;
+                
+                // Commit updates to local persistence storage area
+                saveGameDataToLocalStorage();
+                
                 resetWholeGame();
                 closeModal('modal-settings');
             }
@@ -1314,19 +1343,17 @@
 
         // --- DOM STANDBY INITIALIZATION SEQUENCES ---
         window.addEventListener("DOMContentLoaded", () => {
-            const storedMode = localStorage.getItem("readingRollQuest_styleMode");
-            if (storedMode) {
-                currentGameState.selectedStyleMode = parseInt(storedMode, 10);
+            // First look into localStorage to see if custom files or words were previously configured
+            loadGameDataFromLocalStorage();
+            
+            // Check if words exist in local storage to bypass style select modal flash automatically
+            const hasExistingStoredWords = localStorage.getItem("readingRollQuest_words") !== null;
+            
+            if (hasExistingStoredWords) {
+                document.getElementById("modal-board-select").classList.remove("active");
             }
             
-            const subtitle = document.getElementById("game-subtitle-text");
-            if(currentGameState.selectedStyleMode === 1) {
-                subtitle.innerText = "Roll the dice. Read the word. Connect three dots.";
-            } else {
-                subtitle.innerText = "Trophy Race: Share grid spaces and race to hit the trophy peak!";
-            }
-            
-            document.getElementById("modal-board-select").classList.remove("active");
+            updateSubtitleTextGraphic();
             renderHardwareDiceFaceGraphic(1);
             regenerateBoardGridMatrixElements();
         });
