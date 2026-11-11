@@ -1414,5 +1414,264 @@
             regenerateBoardGridMatrixElements();
         });
     </script>
+    
+<!-- =====================================================
+     TEACHER KHEN COMMUNITY CONNECTOR
+     GAME: GIVE OR KEEP - CLASSROOM EDITION
+     ===================================================== -->
+
+<script>
+(() => {
+  'use strict';
+
+  // Community mode only.
+  // Normal visits to the game are not affected.
+  if (
+    location.hash !== '#tk-community' ||
+    !window.opener
+  ) return;
+
+  const allowedOrigins = new Set([
+    'https://teacherkhen.com',
+    'https://www.teacherkhen.com'
+  ]);
+
+  const protocol = {
+    ready: 'TK_GIVEKEEP_READY',
+    lesson: 'TK_GIVEKEEP_LESSON',
+    loaded: 'TK_GIVEKEEP_LOADED',
+    error: 'TK_GIVEKEEP_ERROR'
+  };
+
+  let completed = false;
+  let receiving = false;
+  let attempts = 0;
+  let readyTimer = null;
+
+  function send(type, extra = {}, origin = null) {
+    if (!window.opener || window.opener.closed) return;
+
+    const payload = { type, ...extra };
+
+    if (origin) {
+      window.opener.postMessage(payload, origin);
+    } else {
+      allowedOrigins.forEach(target => {
+        window.opener.postMessage(payload, target);
+      });
+    }
+  }
+
+  // The game's original JSON export contains
+  // exactly 26 challenge questions.
+  function validateLesson(incoming) {
+
+    if (
+      !Array.isArray(incoming) ||
+      incoming.length !== 26
+    ) {
+      throw new Error(
+        'Give or Keep requires exactly 26 questions.'
+      );
+    }
+
+    const validOutcomes = new Set([
+      '+5', '+10', '+20', '+30', '+50',
+      '-5', '-10', '-20', '-25', '-30',
+      'swap score', 'lose all points'
+    ]);
+
+    return incoming.map((item, index) => {
+
+      if (
+        !item ||
+        typeof item !== 'object' ||
+        Array.isArray(item) ||
+        typeof item.text !== 'string' ||
+        !['id', 'multiple'].includes(item.type) ||
+        !validOutcomes.has(item.outcome)
+      ) {
+        throw new Error(
+          'Invalid question at slot ' + (index + 1)
+        );
+      }
+
+      const options = Array.isArray(item.options)
+        ? item.options
+        : [];
+
+      if (
+        options.length !== 4 ||
+        !options.every(opt => typeof opt === 'string')
+      ) {
+        throw new Error(
+          'Invalid answer options at slot ' + (index + 1)
+        );
+      }
+
+      const correct = Number(item.correct);
+
+      if (
+        !Number.isInteger(correct) ||
+        correct < 0 ||
+        correct > 3
+      ) {
+        throw new Error(
+          'Invalid correct answer at slot ' + (index + 1)
+        );
+      }
+
+      if (
+        item.type === 'multiple' &&
+        !options[correct].trim()
+      ) {
+        throw new Error(
+          'Missing correct option at slot ' + (index + 1)
+        );
+      }
+
+      if (
+        item.image != null &&
+        typeof item.image !== 'string'
+      ) {
+        throw new Error(
+          'Invalid picture at slot ' + (index + 1)
+        );
+      }
+
+      return {
+        text: item.text,
+        type: item.type,
+        options: [...options],
+        correct,
+        answer: String(item.answer || ''),
+        image: item.image || '',
+        outcome: item.outcome
+      };
+    });
+  }
+
+  // Apply the Community activity in memory.
+  function applyLesson(incoming) {
+
+    const imported = validateLesson(incoming);
+
+    // Replace only the active question matrix.
+    questions = imported;
+
+    // Reset current game progress.
+    scores = { A: 0, B: 0 };
+    currentTeam = 'A';
+    used = new Array(26).fill(false);
+    activeIdx = null;
+    isAnswerLocked = false;
+    pendingWrongPoints = 0;
+
+    // Restore the original scoreboard.
+    updateScores();
+
+    // Refresh the existing settings editor.
+    buildSetup();
+
+    // Randomly assign the 26 questions
+    // to the existing alphabet grid.
+    shuffle();
+
+    // Show the game's original instructions.
+    // The teacher can start normally.
+    changeScreen('screenRules');
+
+    // No localStorage changes.
+    // Original manual Save/Export still work.
+    return true;
+  }
+
+  // Receive the selected Community lesson.
+  window.addEventListener('message', event => {
+
+    if (
+      event.source !== window.opener ||
+      !allowedOrigins.has(event.origin) ||
+      completed ||
+      receiving ||
+      event.data?.type !== protocol.lesson
+    ) return;
+
+    receiving = true;
+
+    try {
+
+      applyLesson(event.data.lesson);
+
+      completed = true;
+      clearInterval(readyTimer);
+
+      send(protocol.loaded, {}, event.origin);
+
+      console.log(
+        'TeacherKhen Community: Give or Keep lesson loaded.'
+      );
+
+    } catch (error) {
+
+      receiving = false;
+
+      send(
+        protocol.error,
+        {
+          message: error?.message ||
+            'Unable to load Give or Keep lesson.'
+        },
+        event.origin
+      );
+    }
+  });
+
+  // Tell Community the game is ready.
+  function announceReady() {
+
+    if (
+      completed ||
+      receiving ||
+      !window.opener ||
+      window.opener.closed ||
+      attempts++ >= 90
+    ) {
+      clearInterval(readyTimer);
+      return;
+    }
+
+    send(protocol.ready);
+  }
+
+  function startConnector() {
+    announceReady();
+
+    if (!completed) {
+      readyTimer = setInterval(
+        announceReady,
+        1000
+      );
+    }
+  }
+
+  // The original game uses window.onload to
+  // restore saved questions and build its UI.
+  // Wait until that initialization finishes.
+  if (document.readyState === 'complete') {
+    startConnector();
+  } else {
+    window.addEventListener(
+      'load',
+      startConnector,
+      { once: true }
+    );
+  }
+
+})();
+</script>
+
+<!-- END GIVE OR KEEP COMMUNITY CONNECTOR -->
+
 </body>
 </html>
