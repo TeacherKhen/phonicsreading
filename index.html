@@ -101,6 +101,22 @@ header{flex:0 0 auto;min-height:0;padding:clamp(5px,.85vh,11px) clamp(8px,1vw,17
  .sidebar{gap:3px}.dice{height:min(19vh,105px);width:min(19vh,105px);padding:5px}
  .audio-controls label{font-size:10px}.footer{display:none}
 }
+
+/* Larger phonics words, always on one line and automatically fitted. */
+.cell.word > .game-word {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: clip;
+  font-family: "Comic Neue", Arial, sans-serif;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+}
+
 </style>
 </head>
 <body>
@@ -171,7 +187,40 @@ function shuffleWords(){if(claims.some(Boolean)&&!confirm('Shuffle the words and
 function resetGame(rebuild=true){pauseTimer();clearInterval(rollingTimer);rolling=false;if(rebuild||words.length!==36)words=boardWords();claims=Array(36).fill(0);scores=[0,0];turn=1;selectedRow=null;finished=false;timeLeft=config.duration;winCells=new Set();trophies=[new Set(),new Set()];$('diceStatus').textContent='Roll the dice!';diceFace(1);updateUI();renderBoard()}
 function diceFace(n){const patterns={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};$('dice').querySelectorAll('.pip').forEach((p,i)=>p.classList.toggle('show',patterns[n].includes(i)))}
 function rollDice(){if(rolling||finished)return;startMusic();if(selectedRow!==null){$('diceStatus').textContent='Choose a word first!';return}rolling=true;let ticks=0;rollingTimer=setInterval(()=>{const n=1+Math.floor(Math.random()*6);diceFace(n);ticks++;if(ticks>=12){clearInterval(rollingTimer);rolling=false;selectedRow=n-1;$('diceStatus').textContent='Row '+n+' — read a word!';playFX('clickSound');renderBoard()}},75)}
-function renderBoard(){const board=$('board');board.replaceChildren();for(let r=0;r<6;r++){const row=document.createElement('button');row.type='button';row.className='cell row'+(selectedRow===r?' selected-row':'');row.textContent='⚄ '+(r+1);row.disabled=true;board.appendChild(row);for(let c=0;c<6;c++){const i=r*6+c,mask=claims[i],isTrophy=config.mode==='trophy'&&c===5;const b=document.createElement('button');b.type='button';b.className='cell word'+(isTrophy?' trophy':'')+(mask===1?' blue-claim':mask===2?' red-claim':mask===3?' both-claim':'')+(selectedRow===r?' selected-row':'')+(winCells.has(i)?' winning':'');const label=document.createElement('span');label.textContent=isTrophy?'🏆':words[i];b.appendChild(label);if(mask){const mark=document.createElement('small');mark.className='mark';mark.textContent=mask===1?'🔵':mask===2?'🔴':'🔵🔴';b.appendChild(mark)}b.onclick=()=>claim(i);board.appendChild(b)}}}
+
+/* Measures words using the actual Comic Neue font so long words stay
+   on one line without clipping or affecting the board dimensions. */
+function fitBoardWords(){
+  const canvas=fitBoardWords.canvas||(fitBoardWords.canvas=document.createElement('canvas'));
+  const ctx=canvas.getContext('2d');
+  if(!ctx)return;
+  document.querySelectorAll('#board .cell.word .game-word').forEach(label=>{
+    const cell=label.parentElement;
+    const width=Math.max(10,cell.clientWidth-14);
+    const height=Math.max(10,cell.clientHeight-12);
+    const maxSize=Math.min(42,Math.max(12,height*.54));
+    let lo=9,hi=maxSize;
+    const content=label.textContent||'';
+    while(hi-lo>.25){
+      const mid=(hi+lo)/2;
+      ctx.font=`700 ${mid}px "Comic Neue", Arial, sans-serif`;
+      if(ctx.measureText(content).width<=width)lo=mid;
+      else hi=mid;
+    }
+    label.style.fontSize=lo.toFixed(1)+'px';
+  });
+}
+let fitFrame=0;
+function scheduleWordFit(){
+  cancelAnimationFrame(fitFrame);
+  fitFrame=requestAnimationFrame(fitBoardWords);
+}
+window.addEventListener('resize',scheduleWordFit);
+if(document.fonts&&document.fonts.ready){
+  document.fonts.ready.then(scheduleWordFit);
+}
+
+function renderBoard(){const board=$('board');board.replaceChildren();for(let r=0;r<6;r++){const row=document.createElement('button');row.type='button';row.className='cell row'+(selectedRow===r?' selected-row':'');row.textContent='⚄ '+(r+1);row.disabled=true;board.appendChild(row);for(let c=0;c<6;c++){const i=r*6+c,mask=claims[i],isTrophy=config.mode==='trophy'&&c===5;const b=document.createElement('button');b.type='button';b.className='cell word'+(isTrophy?' trophy':'')+(mask===1?' blue-claim':mask===2?' red-claim':mask===3?' both-claim':'')+(selectedRow===r?' selected-row':'')+(winCells.has(i)?' winning':'');const label=document.createElement('span');label.textContent=isTrophy?'🏆':words[i];if(!isTrophy)label.className='game-word';b.appendChild(label);if(mask){const mark=document.createElement('small');mark.className='mark';mark.textContent=mask===1?'🔵':mask===2?'🔴':'🔵🔴';b.appendChild(mark)}b.onclick=()=>claim(i);board.appendChild(b)}}scheduleWordFit()}
 function claim(i){if(rolling||finished)return;if(selectedRow===null){$('diceStatus').textContent='Roll the dice first!';return}const r=Math.floor(i/6);if(r!==selectedRow){$('diceStatus').textContent='Choose a word in row '+(selectedRow+1);return}const bit=turn===1?1:2;const priorScores=[...scores];if(config.mode==='classic'){if(claims[i]){$('diceStatus').textContent='Already claimed!';return}claims[i]=bit;scoreClassic()}else{if(claims[i]&bit){$('diceStatus').textContent='Your team already claimed this!';return}claims[i]|=bit;scoreTrophy()}playFX('clickSound');if(scores[0]>priorScores[0]||scores[1]>priorScores[1]){setTimeout(()=>playFX('pointSound'),130)}selectedRow=null;turn=turn===1?2:1;$('diceStatus').textContent='Roll the dice!';updateUI();renderBoard();if((config.mode==='classic'&&claims.every(Boolean))||(config.mode==='trophy'&&trophies[0].size===6&&trophies[1].size===6))endGame()}
 function scoreClassic(){scores=[0,0];winCells=new Set();for(let team=1;team<=2;team++){for(let r=0;r<6;r++)for(let c=0;c<6;c++)for(const [dr,dc] of [[0,1],[1,0],[1,1],[1,-1]]){const positions=[];for(let k=0;k<3;k++){const y=r+dr*k,x=c+dc*k;if(y<0||y>=6||x<0||x>=6)break;positions.push(y*6+x)}if(positions.length===3&&positions.every(i=>claims[i]===team)){scores[team-1]++;positions.forEach(i=>winCells.add(i))}}}}
 function scoreTrophy(){scores=[0,0];for(let team=1;team<=2;team++){const bit=team===1?1:2,seen=new Set(),queue=[];for(let r=0;r<6;r++){const i=r*6;if(claims[i]&bit){seen.add(i);queue.push(i)}}for(let q=0;q<queue.length;q++){const i=queue[q],r=Math.floor(i/6),c=i%6;for(const [y,x] of [[r+1,c],[r-1,c],[r,c+1],[r,c-1]]){if(y<0||y>=6||x<0||x>=6)continue;const j=y*6+x;if(!seen.has(j)&&(claims[j]&bit)){seen.add(j);queue.push(j)}}}for(let r=0;r<6;r++)if(seen.has(r*6+5))trophies[team-1].add(r);scores[team-1]=trophies[team-1].size}}
@@ -261,6 +310,68 @@ function importJSON(e){
 }
 
 load();syncInputs();resetGame(true);
+
+/* Teacher Khen Community — Reading Roll Quest connector.
+   Only accepts lessons from TeacherKhen.com and only in Community mode.
+   Normal local JSON import/export remains unchanged. */
+const TK_ROLLQUEST_ORIGINS = new Set([
+  'https://teacherkhen.com',
+  'https://www.teacherkhen.com'
+]);
+const TK_ROLLQUEST_COMMUNITY_MODE =
+  window.location.hash === '#tk-community' && !!window.opener;
+
+function loadRollQuestCommunityLesson(data) {
+  if (!data || typeof data !== 'object') {
+    throw new Error('Invalid Reading Roll Quest JSON.');
+  }
+  const lessonWords = extractLegacyWords(data);
+  if (!lessonWords || !lessonWords.length) {
+    throw new Error('No usable Reading Roll Quest words were found.');
+  }
+  const incoming = data.settings || data.config || data.gameSettings || data;
+  const next = { ...config, words: lessonWords };
+  if (incoming && typeof incoming === 'object') {
+    const mode = incoming.mode ?? incoming.gameMode ?? incoming.boardStyle;
+    if (['classic', 'board1', 1, '1'].includes(mode)) next.mode = 'classic';
+    if (['trophy', 'board2', 2, '2'].includes(mode)) next.mode = 'trophy';
+    const blue = incoming.team1 ?? incoming.team1Name ?? incoming.blueTeamName;
+    const red = incoming.team2 ?? incoming.team2Name ?? incoming.redTeamName;
+    if (typeof blue === 'string' && blue.trim()) next.team1 = blue.trim();
+    if (typeof red === 'string' && red.trim()) next.team2 = red.trim();
+    const duration = incoming.duration ?? incoming.timerDuration ?? incoming.gameDuration;
+    if (duration !== undefined && duration !== null &&
+        Number.isFinite(Number(duration)) && Number(duration) >= 0) {
+      next.duration = Number(duration);
+    }
+  }
+  // Do not overwrite the teacher's saved local settings when playing a Community lesson.
+  config = next;
+  syncInputs();
+  resetGame(true);
+}
+
+if (TK_ROLLQUEST_COMMUNITY_MODE) {
+  window.addEventListener('message', event => {
+    if (event.source !== window.opener ||
+        !TK_ROLLQUEST_ORIGINS.has(event.origin) ||
+        event.data?.type !== 'TK_ROLLQUEST_LESSON') return;
+    try {
+      loadRollQuestCommunityLesson(event.data.lesson);
+      window.opener.postMessage({ type: 'TK_ROLLQUEST_LOADED' }, event.origin);
+    } catch (err) {
+      window.opener.postMessage({
+        type: 'TK_ROLLQUEST_ERROR',
+        message: err instanceof Error ? err.message : String(err)
+      }, event.origin);
+    }
+  });
+  // Existing Community code listens for READY and then posts the authorized lesson.
+  for (const origin of TK_ROLLQUEST_ORIGINS) {
+    window.opener.postMessage({ type: 'TK_ROLLQUEST_READY' }, origin);
+  }
+}
+
 // Browsers restrict autoplay. Music begins with the first user interaction.
 document.addEventListener('pointerdown',function firstInteraction(){startMusic();document.removeEventListener('pointerdown',firstInteraction)},{once:true});
 </script>
