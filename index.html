@@ -1,1080 +1,268 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Reading Roll Quest | Teacher Khen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --pink:#fde2e4;
-  --blue:#09b8ee;
-  --red:#ff5367;
-  --ink:#24242c;
-  --white:#fff;
+:root{--ink:#253044;--pink:#fde4e8;--sky:#42b9f2;--red:#fa627e;--gold:#ffd76c;--panel:rgba(255,255,255,.93)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:'Comic Neue',Arial,sans-serif;color:var(--ink)}
+body{background:#fde4e8 url('background image.png') center center/cover fixed no-repeat}
+button,input,textarea,select{font:inherit}button{cursor:pointer;touch-action:manipulation}button:disabled{opacity:.55;cursor:not-allowed}
+.shell{width:min(1840px,98%);margin:auto;padding:14px 0 26px}
+header{display:grid;grid-template-columns:minmax(250px,340px) 1fr minmax(155px,205px);gap:16px;align-items:center;background:var(--panel);border:4px solid var(--ink);border-radius:24px;padding:15px 18px;box-shadow:0 7px 0 #26304422}
+.scores{display:flex;gap:12px}.team{flex:1;min-width:0;position:relative;text-align:center;border:4px solid var(--sky);background:#fff;border-radius:17px;padding:13px 7px}.team.red{border-color:var(--red)}.team.active{box-shadow:0 0 0 4px var(--gold)}.team small{display:block;font-size:clamp(15px,1.2vw,22px);font-weight:700}.team strong{display:block;font-size:clamp(35px,3.1vw,57px);line-height:1}.blue{color:#068bc0}.redtext{color:#e64062}
+.heading{text-align:center}.heading h1{font-size:clamp(36px,3.4vw,63px);color:#f35791;margin:0;line-height:1;text-shadow:2px 2px #fff,3px 3px var(--ink)}.heading p{font-size:clamp(18px,1.5vw,27px);font-weight:700;margin:9px 0 0}.top-actions{display:grid;gap:9px}
+.btn{font-size:clamp(17px,1.28vw,24px);font-weight:700;min-height:54px;background:#fff;border:3px solid var(--ink);border-radius:13px;padding:10px 12px;box-shadow:0 4px 0 #253044}.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #253044}.btn.cyan{background:#ddf5ff;border-color:#159dd5}.btn.rose{background:#ffe3eb;border-color:#ef5480}.btn.gold{background:#fff3cd;border-color:#d5a437}
+.main{display:grid;grid-template-columns:minmax(0,1fr) minmax(255px,315px);gap:18px;margin-top:18px;align-items:start}
+.board-shell,.sidebar{background:var(--panel);border:4px solid var(--ink);border-radius:23px;padding:14px;box-shadow:0 8px 0 #25304422}
+.board{display:grid;grid-template-columns:minmax(65px,.72fr) repeat(6,minmax(0,1fr));grid-template-rows:repeat(6,minmax(78px,1fr));gap:7px}
+.cell{border:2px solid #59616b;border-radius:11px;background:white;min-width:0;min-height:clamp(72px,7.3vh,125px);padding:5px;position:relative;font-size:clamp(20px,2vw,37px);font-weight:700;display:flex;align-items:center;justify-content:center;overflow-wrap:anywhere;text-align:center;line-height:1.03}.cell.word:hover{filter:brightness(.97)}.cell.row{background:#fff5e9;font-size:clamp(20px,1.7vw,31px)}.cell.selected-row{box-shadow:inset 0 0 0 4px #ffce4a}.cell.row.selected-row{background:#ffe38b}.cell.blue-claim{background:#bdeeff;border-color:#008dc3}.cell.red-claim{background:#ffd1dc;border-color:#de3a65}.cell.both-claim{background:linear-gradient(135deg,#bdeeff 50%,#ffd1dc 50%);border-color:#9965b6}.cell.winning{outline:4px solid #ffbb00;outline-offset:-5px}.cell.trophy{background:#fff4ca;font-size:clamp(26px,2.4vw,45px)}.cell.trophy.blue-claim{background:#bdeeff}.cell.trophy.red-claim{background:#ffd1dc}.cell.trophy.both-claim{background:linear-gradient(135deg,#bdeeff 50%,#ffd1dc 50%)}.mark{position:absolute;font-size:clamp(10px,1vw,17px);bottom:3px;right:3px}
+.sidebar{display:grid;gap:11px}.message{text-align:center;padding:10px;border:2px dashed #a7acb5;border-radius:12px;background:#fff;font-size:clamp(19px,1.35vw,25px);font-weight:700}.dice-wrap{display:grid;justify-items:center;gap:13px;padding:12px 0}.dice{width:clamp(155px,11vw,210px);aspect-ratio:1;border:6px solid var(--ink);border-radius:31px;box-shadow:0 10px 0 var(--ink);background:#fff;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:10px;padding:17px}.dice:active{transform:translateY(4px);box-shadow:0 6px 0 var(--ink)}.pip{width:65%;aspect-ratio:1;background:var(--ink);border-radius:50%;align-self:center;justify-self:center;visibility:hidden}.pip.show{visibility:visible}.dice-caption{font-size:clamp(19px,1.3vw,24px);font-weight:700;text-align:center;background:#fff;border-radius:11px;border:2px dashed #bbb;padding:9px}
+.audio-controls{border-top:2px dashed #ccd3dc;padding-top:11px;display:grid;gap:8px}.audio-controls label{font-weight:700;font-size:17px;display:flex;align-items:center;gap:8px}.audio-controls input[type=range]{width:100%}.audio-controls input[type=checkbox]{width:19px;height:19px}.audio-row{display:grid;grid-template-columns:1fr;gap:3px}.footer{text-align:center;font-size:19px;font-weight:700;padding:17px 0}
+.modal{position:fixed;inset:0;z-index:20;display:none;background:#111b32a8;padding:18px;align-items:center;justify-content:center}.modal.open{display:flex}.dialog{width:min(740px,100%);max-height:95vh;overflow:auto;background:#fff;border:4px solid var(--ink);border-radius:21px;padding:23px;box-shadow:0 10px 0 #202532}.dialog h2{margin:0 0 15px;color:#ed4b85;font-size:clamp(29px,3vw,42px)}.dialog h3{margin:12px 0 4px}.dialog label{display:block;font-size:20px;font-weight:700;margin:12px 0 5px}.dialog input:not([type=checkbox]):not([type=file]),.dialog textarea,.dialog select{width:100%;padding:10px;border:2px solid #687180;border-radius:10px;font-size:20px}.dialog textarea{min-height:170px;resize:vertical}.dialog p,.dialog li{font-size:19px;line-height:1.4}.dialog .buttons{display:flex;flex-wrap:wrap;gap:10px;margin-top:17px}.dialog .buttons .btn{flex:1}.big-time{font-size:60px;font-weight:700;text-align:center;background:#fff4cc;border-radius:14px;padding:14px}.check{display:flex;align-items:center;gap:9px;font-weight:700;font-size:20px;margin-top:12px}.check input{width:20px;height:20px}
+@media(min-width:1500px){.board{gap:9px}.cell{min-height:clamp(92px,9.6vh,155px)}}
+@media(max-width:1050px){header{grid-template-columns:1fr;justify-items:center}.scores{width:min(380px,100%)}.top-actions{display:flex}.main{grid-template-columns:1fr}.sidebar{grid-template-columns:repeat(2,1fr)}.dice-wrap,.audio-controls{grid-column:1/-1}.board{grid-template-rows:repeat(6,minmax(70px,1fr))}}
+@media(max-width:600px){.shell{width:99%;padding:4px 3px}.board-shell{padding:5px}.board{gap:3px;grid-template-columns:32px repeat(6,minmax(0,1fr))}.cell{min-height:53px;font-size:clamp(12px,2.8vw,18px);border-radius:5px;padding:2px;border-width:1px}.cell.row{font-size:12px}.cell.trophy{font-size:20px}.mark{font-size:9px}.sidebar{gap:8px;padding:8px}.btn{font-size:16px;min-height:49px;padding:8px}.heading h1{font-size:33px}.heading p{font-size:17px}.team{padding:8px 4px}.team strong{font-size:32px}.main{gap:9px;margin-top:9px}.dice{width:155px}.dialog{padding:13px}}
+
+/* v3: Screen-fitted game stage. No page scrolling in gameplay. */
+html,body{width:100%;height:100%;overflow:hidden}
+body{background-attachment:fixed}
+.shell{width:min(1840px,99vw);height:100vh;height:100dvh;margin:0 auto;padding:clamp(4px,.7vh,10px) 0;display:flex;flex-direction:column;gap:clamp(5px,.85vh,12px);overflow:hidden}
+header{flex:0 0 auto;min-height:0;padding:clamp(5px,.85vh,11px) clamp(8px,1vw,17px);gap:clamp(6px,.7vw,12px);border-width:3px;border-radius:17px}
+.team{padding:clamp(3px,.5vh,9px) 5px;border-width:3px;border-radius:12px}
+.team small{font-size:clamp(12px,1.05vw,19px)}
+.team strong{font-size:clamp(25px,4.4vh,46px)}
+.heading h1{font-size:clamp(24px,3.4vw,48px)}
+.heading p{font-size:clamp(12px,1.3vw,21px);margin:3px 0 0}
+.top-actions{gap:5px}
+.btn{min-height:0;font-size:clamp(13px,1.05vw,19px);padding:clamp(5px,.7vh,10px) 8px;border-width:2px;border-radius:10px;box-shadow:0 2px 0 #253044}
+.main{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,min(24vw,320px));gap:clamp(6px,1vw,14px);margin-top:0;align-items:stretch}
+.board-shell,.sidebar{height:100%;min-height:0;min-width:0;border-width:3px;border-radius:16px;padding:clamp(5px,.7vw,11px);box-shadow:0 3px 0 #25304422}
+.board{width:100%;height:100%;display:grid;grid-template-columns:minmax(38px,.68fr) repeat(6,minmax(0,1fr));grid-template-rows:repeat(6,minmax(0,1fr));gap:clamp(2px,.5vw,7px)}
+.cell{min-width:0;min-height:0;height:100%;padding:2px;font-size:clamp(12px,min(2vw,3.4vh),34px);border-radius:clamp(4px,.6vw,10px);line-height:1.02}
+.cell.row{font-size:clamp(12px,min(1.45vw,2.8vh),27px)}
+.cell.trophy{font-size:clamp(18px,min(2.1vw,3.5vh),38px)}
+.sidebar{display:flex;flex-direction:column;align-items:stretch;gap:clamp(3px,.75vh,9px)}
+.sidebar>.btn{flex:0 0 auto}
+.message{font-size:clamp(13px,1.15vw,21px);padding:clamp(5px,.6vh,9px);flex:0 0 auto}
+.dice-wrap{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:clamp(3px,.6vh,8px);padding:1px 0}
+.dice{height:min(23vh,19vw,175px);width:min(23vh,19vw,175px);max-height:100%;min-height:0;flex:0 1 auto;border-width:4px;border-radius:20px;gap:5px;padding:clamp(7px,1vh,13px);box-shadow:0 4px 0 var(--ink)}
+.dice-caption{font-size:clamp(12px,1.1vw,19px);padding:4px 7px;line-height:1.06}
+.audio-controls{flex:0 0 auto;gap:2px;padding-top:4px;border-top-width:1px}
+.audio-controls label{font-size:clamp(11px,.9vw,15px);gap:5px}
+.audio-controls input[type=checkbox]{width:15px;height:15px;margin:0}
+.audio-controls input[type=range]{height:13px;margin:0}
+.audio-row{gap:0}
+.footer{flex:0 0 auto;font-size:clamp(10px,.85vw,14px);padding:0;line-height:1}
+/* Modal dialogs may scroll internally; the game screen never does. */
+.modal{overflow:hidden}.dialog{max-height:92dvh}
+@media (max-width:1050px){
+ header{grid-template-columns:minmax(160px,25%) minmax(0,1fr) minmax(95px,18%);justify-items:stretch}
+ .scores{width:100%}.top-actions{display:grid}
+ .main{grid-template-columns:minmax(0,1fr) minmax(170px,29%)}
+ .sidebar{display:flex}.dice-wrap,.audio-controls{grid-column:auto}
+ .board{grid-template-rows:repeat(6,minmax(0,1fr))}
 }
-*{box-sizing:border-box}
-body{
-  margin:0;
-  min-height:100vh;
-  background:var(--pink);
-  font-family:"Comic Neue",Arial,sans-serif;
-  color:var(--ink);
+@media(max-width:650px) and (orientation:portrait){
+ .shell{width:100%;padding:3px;gap:4px}
+ header{grid-template-columns:1fr auto;grid-template-areas:'heading heading' 'scores actions';gap:4px;padding:4px;border-radius:9px}
+ .scores{grid-area:scores;gap:4px;max-width:230px}
+ .heading{grid-area:heading}.heading h1{font-size:clamp(22px,6.6vw,32px)}.heading p{font-size:12px;margin:1px 0}
+ .top-actions{grid-area:actions;display:grid;gap:3px}
+ .top-actions .btn{font-size:11px;padding:3px 5px}
+ .team{padding:2px;border-width:2px}.team small{font-size:10px}.team strong{font-size:23px}
+ .main{display:flex;flex-direction:column;gap:4px}
+ .board-shell{flex:1 1 53%;min-height:0;padding:3px}
+ .board{grid-template-columns:24px repeat(6,minmax(0,1fr));gap:2px}
+ .cell{min-height:0;font-size:clamp(11px,3vw,16px);border-radius:4px}
+ .cell.row{font-size:11px}.cell.trophy{font-size:18px}
+ .sidebar{height:auto;flex:0 0 auto;max-height:43%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;padding:4px;border-radius:8px}
+ .sidebar>.btn{font-size:clamp(9px,2.4vw,12px);padding:4px 1px}
+ .message{grid-column:1/3;align-self:center;font-size:12px;padding:3px}
+ .dice-wrap{grid-column:3/5;grid-row:2/4;gap:3px;padding:0;justify-content:center}
+ .dice{height:min(13vh,95px);width:min(13vh,95px);border-width:3px;border-radius:12px;gap:2px;padding:6px}
+ .dice-caption{font-size:11px;padding:2px}
+ .audio-controls{grid-column:1/3;grid-row:3/4;gap:0}
+ .audio-controls label{font-size:10px}
+ .audio-controls .audio-row{display:flex;gap:4px;align-items:center}
+ .audio-controls .audio-row label{flex:0 0 75px}
+ .audio-controls input[type=range]{min-width:0}
+ .footer{display:none}
 }
-button,input,select,textarea{
-  font:inherit;
-}
-button{
-  cursor:pointer;
-  touch-action:manipulation;
-}
-button:disabled{
-  opacity:.45;
-  cursor:not-allowed;
-}
-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:16px;
-  padding:12px 20px;
-  background:#fff;
-  border-bottom:3px solid #24242c;
-}
-.scores{
-  display:flex;
-  gap:12px;
-}
-.team{
-  width:105px;
-  text-align:center;
-  background:#fff;
-  border:3px solid;
-  border-radius:12px;
-  padding:5px;
-}
-.team.blue{border-color:var(--blue)}
-.team.red{border-color:var(--red)}
-.team.active{
-  transform:scale(1.04);
-  box-shadow:0 0 0 3px #ffdf61;
-}
-.team small{
-  font-size:13px;
-  font-weight:700;
-}
-.team strong{
-  display:block;
-  font-size:30px;
-  line-height:1;
-}
-.blue{color:#009bd2}
-.red{color:#e53e54}
-.heading{
-  text-align:center;
-  flex:1;
-}
-.heading h1{
-  margin:0;
-  color:#ef4c83;
-  font-size:clamp(24px,3vw,39px);
-  text-shadow:2px 2px #222;
-  -webkit-text-stroke:.6px #24242c;
-}
-.heading p{
-  margin:4px 0;
-  font-weight:700;
-}
-.top-actions{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-.game-layout{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) 240px;
-  gap:20px;
-  width:min(1300px,98%);
-  margin:20px auto;
-}
-.board-panel{
-  background:#fff;
-  border:4px solid #26242a;
-  border-radius:16px;
-  padding:12px;
-  box-shadow:4px 5px #bcb1b5;
-}
-.board{
-  display:grid;
-  grid-template-columns:repeat(7,minmax(0,1fr));
-  grid-template-rows:repeat(6,minmax(65px,1fr));
-  gap:5px;
-}
-.cell{
-  position:relative;
-  min-width:0;
-  min-height:65px;
-  background:#fff;
-  border:2px solid #25252c;
-  border-radius:7px;
-  font-weight:700;
-  font-size:clamp(13px,2vw,23px);
-  transition:background .15s,transform .15s;
-  overflow:hidden;
-}
-.cell:not(:disabled):active{
-  transform:scale(.95);
-}
-.cell.blue-claim{
-  background:#a4e8ff;
-  border-color:#009bd2;
-}
-.cell.red-claim{
-  background:#ffc3ce;
-  border-color:#e53e54;
-}
-.cell.both-claim{
-  background:linear-gradient(135deg,#b9ecff 50%,#ffc3ce 50%);
-}
-.cell.row-dice{
-  background:#fff7ec;
-  font-size:27px;
-  border:2px solid #777;
-}
-.cell.row-dice.selected{
-  background:#ffe37a;
-  border:3px solid #e6a000;
-}
-.cell.target-row{
-  box-shadow:inset 0 0 0 2px #e5ad00;
-}
-.cell.trophy{
-  font-size:25px;
-  background:#fff3bd;
-}
-.cell.trophy.blue-claim{
-  background:#a4e8ff;
-}
-.cell.trophy.red-claim{
-  background:#ffc3ce;
-}
-.cell.trophy.both-claim{
-  background:linear-gradient(135deg,#b9ecff 50%,#ffc3ce 50%);
-}
-.cell .word{
-  display:block;
-  overflow-wrap:anywhere;
-}
-.cell .marker{
-  position:absolute;
-  bottom:1px;
-  right:3px;
-  font-size:12px;
-}
-.cell.line-win{
-  outline:3px solid #ecb62d;
-  outline-offset:-4px;
-}
-.side{
-  display:flex;
-  flex-direction:column;
-  align-items:stretch;
-  gap:10px;
-}
-.action{
-  background:#fff;
-  border:3px solid #25252c;
-  border-radius:9px;
-  padding:10px;
-  min-height:44px;
-  font-weight:700;
-  box-shadow:0 3px #222;
-}
-.action:active{
-  transform:translateY(2px);
-  box-shadow:0 1px #222;
-}
-.action.pink{
-  background:#ffe5ef;
-  border-color:#e94075;
-}
-.action.primary{
-  background:#d4f3ff;
-  border-color:#009dd7;
-}
-.dice-area{
-  margin-top:10px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:10px;
-}
-.dice{
-  width:145px;
-  height:145px;
-  background:#fff;
-  border:5px solid #222;
-  border-radius:24px;
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  grid-template-rows:repeat(3,1fr);
-  padding:15px;
-  gap:6px;
-  box-shadow:0 8px #222;
-}
-.dice:active{
-  transform:translateY(5px);
-  box-shadow:0 3px #222;
-}
-.dot{
-  width:23px;
-  height:23px;
-  background:#181818;
-  border-radius:50%;
-  justify-self:center;
-  align-self:center;
-  visibility:hidden;
-}
-.dot.show{visibility:visible}
-.status{
-  background:#fff;
-  border:2px dashed #999;
-  border-radius:8px;
-  padding:10px;
-  text-align:center;
-  font-size:16px;
-  font-weight:700;
-}
-.footer{
-  text-align:center;
-  padding:10px;
-  font-weight:700;
-}
-.modal{
-  display:none;
-  position:fixed;
-  inset:0;
-  z-index:100;
-  background:rgba(0,0,0,.62);
-  padding:15px;
-  overflow:auto;
-  align-items:center;
-  justify-content:center;
-}
-.modal.open{display:flex}
-.dialog{
-  width:min(650px,100%);
-  max-height:94vh;
-  overflow:auto;
-  background:white;
-  border:4px solid #202027;
-  border-radius:18px;
-  padding:20px;
-  box-shadow:8px 8px #161616;
-}
-.dialog h2{
-  margin:0 0 12px;
-  color:#e83c75;
-}
-.dialog h3{margin-bottom:5px}
-.dialog label{
-  font-weight:700;
-  display:block;
-  margin-top:10px;
-}
-.dialog input,
-.dialog select,
-.dialog textarea{
-  width:100%;
-  padding:10px;
-  border:2px solid #444;
-  border-radius:8px;
-  margin-top:4px;
-}
-.dialog textarea{
-  min-height:170px;
-  resize:vertical;
-}
-.modal-buttons{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  margin-top:15px;
-}
-.modal-buttons button{flex:1}
-.result{
-  text-align:center;
-  padding:20px;
-  background:#fff3bf;
-  border-radius:14px;
-  font-size:24px;
-  font-weight:700;
-}
-body:fullscreen{
-  overflow:auto;
-}
-@media(max-width:850px){
-  header{
-    flex-wrap:wrap;
-    justify-content:center;
-  }
-  .heading{order:-1;flex-basis:100%}
-  .top-actions{flex-direction:row}
-  .game-layout{
-    grid-template-columns:1fr;
-    margin:10px auto;
-  }
-  .side{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    align-items:start;
-  }
-  .dice-area{
-    grid-column:span 3;
-    margin-top:0;
-  }
-  .board{
-    grid-template-rows:repeat(6,minmax(48px,1fr));
-    gap:3px;
-  }
-  .cell{
-    min-height:48px;
-    font-size:clamp(11px,2.6vw,20px);
-  }
-  .cell.row-dice{font-size:20px}
-  .dice{
-    width:110px;
-    height:110px;
-    padding:10px;
-  }
-  .dot{
-    width:17px;
-    height:17px;
-  }
-}
-@media(max-width:480px){
-  .side{grid-template-columns:repeat(2,1fr)}
-  .dice-area{grid-column:span 2}
-  .board-panel{padding:5px}
-  .cell{min-height:43px}
-  .team{width:90px}
-  header{padding:8px}
+@media(max-height:620px) and (orientation:landscape){
+ .shell{gap:3px;padding:2px 0}.main{gap:5px}
+ header{padding:2px 7px;border-width:2px}.team{padding:1px 3px}.team strong{font-size:25px}
+ .heading h1{font-size:clamp(20px,3vw,33px)}.heading p{font-size:11px;margin:0}
+ .top-actions .btn{font-size:11px;padding:3px 5px}.sidebar>.btn{font-size:12px;padding:3px}
+ .sidebar{gap:3px}.dice{height:min(19vh,105px);width:min(19vh,105px);padding:5px}
+ .audio-controls label{font-size:10px}.footer{display:none}
 }
 </style>
 </head>
 <body>
-
+<div class="shell">
 <header>
-  <div class="scores">
-    <div class="team blue active" id="team1">
-      <small id="name1">TEAM BLUE</small>
-      <strong id="score1">0</strong>
-    </div>
-    <div class="team red" id="team2">
-      <small id="name2">TEAM RED</small>
-      <strong id="score2">0</strong>
-    </div>
-  </div>
-
-  <div class="heading">
-    <h1>Reading Roll Quest</h1>
-    <p id="subtitle">
-      Roll the dice. Read the word. Connect three dots.
-    </p>
-  </div>
-
-  <div class="top-actions">
-    <button class="action" onclick="toggleFullscreen()">
-      ⛶ Fullscreen
-    </button>
-    <button class="action" onclick="showModal('settingsModal')">
-      ⚙ Settings
-    </button>
-  </div>
+  <div class="scores"><div id="team1" class="team active"><small class="blue" id="name1">TEAM BLUE</small><strong id="score1">0</strong></div><div id="team2" class="team red"><small class="redtext" id="name2">TEAM RED</small><strong id="score2">0</strong></div></div>
+  <div class="heading"><h1>Reading Roll Quest</h1><p id="subtitle">Roll the dice. Read the word. Connect three dots.</p></div>
+  <div class="top-actions"><button class="btn" onclick="toggleFullscreen()">⛶ Fullscreen</button><button class="btn" onclick="openModal('settingsModal')">⚙ Settings</button></div>
 </header>
-
-<div class="game-layout">
-  <section class="board-panel">
-    <div class="board" id="board"></div>
-  </section>
-
-  <aside class="side">
-    <button class="action" onclick="showModal('timerModal')">
-      ⏱ Timer (<span id="timerLabel">01:00</span>)
-    </button>
-    <button class="action" onclick="showModal('settingsModal')">
-      ⚙ Settings
-    </button>
-    <button class="action primary" onclick="shuffleWords()">
-      🔀 Shuffle Words
-    </button>
-    <button class="action pink" onclick="resetGame()">
-      ↻ Reset Game
-    </button>
-    <div class="status" id="turnStatus">
-      Team Blue's turn
-    </div>
-    <div class="dice-area">
-      <button class="dice" id="dice" onclick="rollDice()" aria-label="Roll dice">
-        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-      </button>
-      <div class="status" id="diceStatus">
-        Roll the dice!
-      </div>
+<main class="main">
+  <section class="board-shell"><div id="board" class="board" aria-label="Phonics game word board"></div></section>
+  <aside class="sidebar">
+    <button class="btn" onclick="openModal('timerModal')">⏱ Timer (<span id="timerLabel">01:00</span>)</button>
+    <button class="btn cyan" onclick="shuffleWords()">🔀 Shuffle Words</button>
+    <button class="btn rose" onclick="resetGame(true)">↻ Reset Game</button>
+    <button class="btn gold" onclick="openModal('rulesModal')">📖 How to Play</button>
+    <div id="turnStatus" class="message">Team Blue's turn</div>
+    <div class="dice-wrap"><button class="dice" id="dice" onclick="rollDice()" aria-label="Roll the dice"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></button><div class="dice-caption" id="diceStatus">Roll the dice!</div></div>
+    <div class="audio-controls">
+      <label><input type="checkbox" id="musicEnabled" checked onchange="musicChanged()"> 🎵 Background music</label>
+      <div class="audio-row"><label for="musicVolume">Music volume</label><input type="range" id="musicVolume" min="0" max="100" value="35" oninput="volumeChanged()"></div>
+      <label><input type="checkbox" id="effectsEnabled" checked onchange="effectsChanged()"> 🔊 Sound effects</label>
+      <div class="audio-row"><label for="effectsVolume">Effects volume</label><input type="range" id="effectsVolume" min="0" max="100" value="80" oninput="volumeChanged()"></div>
     </div>
   </aside>
+</main><div class="footer">Teacher Khen | Reading Roll Quest</div>
 </div>
-
-<div class="footer">
-  Teacher Khen | Reading Roll Quest
-</div>
-
-<!-- SETTINGS -->
-<div class="modal" id="settingsModal">
-  <div class="dialog">
-    <h2>⚙ Game Settings</h2>
-
-    <label>Game Mode</label>
-    <select id="modeSelect">
-      <option value="classic">Board Style 1 - Connect Three</option>
-      <option value="trophy">Board Style 2 - Trophy Race</option>
-    </select>
-
-    <label>Team Blue Name</label>
-    <input id="inputName1" value="Team Blue">
-
-    <label>Team Red Name</label>
-    <input id="inputName2" value="Team Red">
-
-    <label>Game Duration</label>
-    <select id="durationSelect">
-      <option value="60">1 Minute</option>
-      <option value="120">2 Minutes</option>
-      <option value="180">3 Minutes</option>
-      <option value="300">5 Minutes</option>
-      <option value="600">10 Minutes</option>
-      <option value="900">15 Minutes</option>
-      <option value="0">No Timer</option>
-    </select>
-
-    <label>
-      <input type="checkbox" id="soundCheck" checked style="width:auto">
-      Enable Sound Effects
-    </label>
-
-    <label>Phonics Word List (one word per line)</label>
-    <textarea id="wordInput"></textarea>
-
-    <div class="modal-buttons">
-      <button class="action" onclick="exportJSON()">
-        Export JSON
-      </button>
-      <button class="action" onclick="document.getElementById('jsonFile').click()">
-        Import JSON
-      </button>
-    </div>
-
-    <input type="file" id="jsonFile" accept=".json,application/json"
-      style="display:none" onchange="importJSON(event)">
-
-    <div class="modal-buttons">
-      <button class="action primary" onclick="applySettings()">
-        Save & Start
-      </button>
-      <button class="action" onclick="hideModal('settingsModal')">
-        Cancel
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- TIMER -->
-<div class="modal" id="timerModal">
-  <div class="dialog">
-    <h2>⏱ Timer</h2>
-    <div class="result" id="largeTimer">01:00</div>
-    <div class="modal-buttons">
-      <button class="action primary" onclick="startTimer()">Start</button>
-      <button class="action" onclick="pauseTimer()">Pause</button>
-      <button class="action pink" onclick="resetTimer()">Reset</button>
-      <button class="action" onclick="hideModal('timerModal')">Close</button>
-    </div>
-  </div>
-</div>
-
-<!-- INSTRUCTIONS -->
-<div class="modal" id="rulesModal">
-  <div class="dialog">
-    <h2>🎲 How to Play</h2>
-    <h3>Board Style 1: Connect Three</h3>
-    <p>
-      1. Roll the dice to select a row.<br>
-      2. Read a phonics word in that row.<br>
-      3. Click the word to claim it for your team.<br>
-      4. Teams take turns.<br>
-      5. Connect three words horizontally, vertically,
-      or diagonally to earn one point.
-    </p>
-    <h3>Board Style 2: Trophy Race</h3>
-    <p>
-      Both teams may claim the same words.
-      Connect a path from the leftmost word column
-      to the trophy on the right to earn a point.
-      Each trophy may be claimed once per team.
-    </p>
-    <p>
-      The team with the most points wins.
-    </p>
-    <button class="action primary" onclick="hideModal('rulesModal')">
-      Let's Play!
-    </button>
-  </div>
-</div>
-
-<!-- RESULTS -->
-<div class="modal" id="resultModal">
-  <div class="dialog">
-    <h2>🏆 Game Results</h2>
-    <div class="result" id="resultText"></div>
-    <div class="modal-buttons">
-      <button class="action primary" onclick="resetGame();hideModal('resultModal')">
-        Play Again
-      </button>
-      <button class="action" onclick="hideModal('resultModal')">
-        Close
-      </button>
-    </div>
-  </div>
-</div>
-
+<!-- Original audio assets must be in the same folder as index.html. -->
+<audio id="bgMusic" src="ES_Softy - Clarence Reed.mp3" preload="auto" loop></audio>
+<audio id="clickSound" src="click.wav" preload="auto"></audio>
+<audio id="pointSound" src="point.wav" preload="auto"></audio>
+<div class="modal" id="settingsModal"><div class="dialog"><h2>⚙ Game Settings</h2>
+<label for="modeInput">Game mode</label><select id="modeInput"><option value="classic">Board Style 1 – Connect Three</option><option value="trophy">Board Style 2 – Trophy Race</option></select>
+<label for="team1Input">Blue team name</label><input id="team1Input" value="Team Blue">
+<label for="team2Input">Red team name</label><input id="team2Input" value="Team Red">
+<label for="durationInput">Game timer</label><select id="durationInput"><option value="60">1 minute</option><option value="120">2 minutes</option><option value="180">3 minutes</option><option value="300">5 minutes</option><option value="600">10 minutes</option><option value="0">No timer</option></select>
+<label for="wordsInput">Phonics words (one per line or separated by commas)</label><textarea id="wordsInput"></textarea>
+<div class="buttons"><button class="btn" onclick="exportJSON()">Export JSON</button><button class="btn" onclick="document.getElementById('importFile').click()">Import JSON</button><input type="file" id="importFile" accept=".json,application/json" hidden onchange="importJSON(event)"></div>
+<div class="buttons"><button class="btn cyan" onclick="applySettings()">Save & Start</button><button class="btn" onclick="closeModal('settingsModal')">Cancel</button></div>
+</div></div>
+<div class="modal" id="timerModal"><div class="dialog"><h2>⏱ Game Timer</h2><div class="big-time" id="bigTimer">01:00</div><div class="buttons"><button class="btn cyan" onclick="startTimer()">Start</button><button class="btn gold" onclick="pauseTimer()">Pause</button><button class="btn rose" onclick="resetTimer()">Reset</button><button class="btn" onclick="closeModal('timerModal')">Close</button></div></div></div>
+<div class="modal" id="rulesModal"><div class="dialog"><h2>📖 How to Play</h2><h3>Classic Connect</h3><p>Roll the dice. Read and select a word in the matching row. Connect three words horizontally, vertically, or diagonally for a point. Every newly completed three-word line earns one point.</p><h3>Trophy Race</h3><p>Both teams may claim the same word. Create a connected path from the first word column to a trophy in the last column. Claiming a reachable trophy earns your team one point; each trophy can score once per team.</p><p>The team with the most points wins.</p><div class="buttons"><button class="btn cyan" onclick="closeModal('rulesModal')">Let's Play!</button></div></div></div>
+<div class="modal" id="resultsModal"><div class="dialog"><h2>🏆 Game Results</h2><div class="big-time" id="resultText"></div><div class="buttons"><button class="btn cyan" onclick="closeModal('resultsModal');resetGame(true)">Play Again</button><button class="btn" onclick="closeModal('resultsModal')">Close</button></div></div></div>
 <script>
-"use strict";
-
-const STORAGE_KEY = "teacher-khen-reading-roll-quest";
-
-const DEFAULT_WORDS = [
-  "cat","bat","sat","mat","rat","hat",
-  "pin","win","fin","bin","tin","sin",
-  "hop","mop","top","pop","log","dog",
-  "bug","jug","mug","rug","sun","run",
-  "pen","hen","ten","men","bed","red",
-  "cap","map","tap","nap","zip","lip"
-];
-
-let config = {
-  mode:"classic",
-  team1:"Team Blue",
-  team2:"Team Red",
-  duration:60,
-  sound:true,
-  words:[...DEFAULT_WORDS]
-};
-
-let claims = Array(36).fill(0);
-let scores = [0,0];
-let activeTeam = 1;
-let rolledRow = null;
-let diceValue = 1;
-let rolling = false;
-let timeLeft = 60;
-let timerHandle = null;
-let timerRunning = false;
-let finished = false;
-let audioContext = null;
-let trophyScores = [new Set(),new Set()];
-
-const $ = id => document.getElementById(id);
-
-function showModal(id){
-  $(id).classList.add("open");
-  if(id === "timerModal") updateTimerDisplay();
+'use strict';
+const $=id=>document.getElementById(id);
+const KEY='tk-reading-roll-quest-2026';
+const DEFAULT_WORDS=['cat','bat','sat','mat','rat','hat','pin','win','fin','bin','tin','sin','hop','mop','top','pop','log','dog','bug','jug','mug','rug','sun','run','pen','hen','ten','men','bed','red','cap','map','tap','nap','zip','lip'];
+let config={mode:'classic',team1:'Team Blue',team2:'Team Red',duration:60,words:[...DEFAULT_WORDS],musicEnabled:true,effectsEnabled:true,musicVolume:35,effectsVolume:80};
+let words=[],claims=[],scores=[0,0],turn=1,selectedRow=null,rolling=false,finished=false,timeLeft=60,timerHandle=null,winCells=new Set(),trophies=[new Set(),new Set()],duckTimer=null,rollingTimer=null;
+function openModal(id){$(id).classList.add('open')}function closeModal(id){$(id).classList.remove('open')}
+function toggleFullscreen(){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.().catch(()=>{});else document.exitFullscreen?.()}
+function safePlay(audio){if(!audio)return;const p=audio.play();if(p&&typeof p.catch==='function')p.catch(()=>{})}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(config))}catch(e){}}
+function load(){try{const data=JSON.parse(localStorage.getItem(KEY)||'null');if(data&&typeof data==='object'){config={...config,...data};if(!Array.isArray(config.words)||!config.words.length)config.words=[...DEFAULT_WORDS]}}catch(e){}}
+function audioSync(){const music=$('bgMusic');music.volume=config.musicEnabled?Math.min(1,config.musicVolume/100):0;music.muted=!config.musicEnabled;$('musicEnabled').checked=config.musicEnabled;$('effectsEnabled').checked=config.effectsEnabled;$('musicVolume').value=config.musicVolume;$('effectsVolume').value=config.effectsVolume}
+function startMusic(){if(config.musicEnabled)safePlay($('bgMusic'))}
+function musicChanged(){config.musicEnabled=$('musicEnabled').checked;save();audioSync();if(config.musicEnabled)startMusic();else $('bgMusic').pause()}
+function effectsChanged(){config.effectsEnabled=$('effectsEnabled').checked;save()}
+function volumeChanged(){config.musicVolume=Number($('musicVolume').value);config.effectsVolume=Number($('effectsVolume').value);save();audioSync()}
+function playFX(id){if(!config.effectsEnabled)return;const a=$(id);a.pause();a.currentTime=0;a.volume=Math.min(1,config.effectsVolume/100);safePlay(a);if(id==='pointSound')duckMusic(1000)}
+function duckMusic(ms){const music=$('bgMusic');clearTimeout(duckTimer);if(config.musicEnabled){music.volume=(config.musicVolume/100)*.18;duckTimer=setTimeout(()=>{music.volume=config.musicEnabled?config.musicVolume/100:0},ms)}}
+function syncInputs(){$('modeInput').value=config.mode;$('team1Input').value=config.team1;$('team2Input').value=config.team2;$('durationInput').value=String(config.duration);$('wordsInput').value=config.words.join('\n');audioSync()}
+function applySettings(){const newWords=$('wordsInput').value.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);if(!newWords.length){alert('Please add at least one word.');return}config.mode=$('modeInput').value;config.team1=$('team1Input').value.trim()||'Team Blue';config.team2=$('team2Input').value.trim()||'Team Red';config.duration=Number($('durationInput').value);config.words=newWords;save();closeModal('settingsModal');resetGame(true);startMusic()}
+function boardWords(){const pool=config.words.length?config.words:DEFAULT_WORDS;return Array.from({length:36},(_,i)=>String(pool[i%pool.length]))}
+function shuffleArray(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function shuffleWords(){if(claims.some(Boolean)&&!confirm('Shuffle the words and restart this round?'))return;words=shuffleArray(boardWords());resetGame(false)}
+function resetGame(rebuild=true){pauseTimer();clearInterval(rollingTimer);rolling=false;if(rebuild||words.length!==36)words=boardWords();claims=Array(36).fill(0);scores=[0,0];turn=1;selectedRow=null;finished=false;timeLeft=config.duration;winCells=new Set();trophies=[new Set(),new Set()];$('diceStatus').textContent='Roll the dice!';diceFace(1);updateUI();renderBoard()}
+function diceFace(n){const patterns={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};$('dice').querySelectorAll('.pip').forEach((p,i)=>p.classList.toggle('show',patterns[n].includes(i)))}
+function rollDice(){if(rolling||finished)return;startMusic();if(selectedRow!==null){$('diceStatus').textContent='Choose a word first!';return}rolling=true;let ticks=0;rollingTimer=setInterval(()=>{const n=1+Math.floor(Math.random()*6);diceFace(n);ticks++;if(ticks>=12){clearInterval(rollingTimer);rolling=false;selectedRow=n-1;$('diceStatus').textContent='Row '+n+' — read a word!';playFX('clickSound');renderBoard()}},75)}
+function renderBoard(){const board=$('board');board.replaceChildren();for(let r=0;r<6;r++){const row=document.createElement('button');row.type='button';row.className='cell row'+(selectedRow===r?' selected-row':'');row.textContent='⚄ '+(r+1);row.disabled=true;board.appendChild(row);for(let c=0;c<6;c++){const i=r*6+c,mask=claims[i],isTrophy=config.mode==='trophy'&&c===5;const b=document.createElement('button');b.type='button';b.className='cell word'+(isTrophy?' trophy':'')+(mask===1?' blue-claim':mask===2?' red-claim':mask===3?' both-claim':'')+(selectedRow===r?' selected-row':'')+(winCells.has(i)?' winning':'');const label=document.createElement('span');label.textContent=isTrophy?'🏆':words[i];b.appendChild(label);if(mask){const mark=document.createElement('small');mark.className='mark';mark.textContent=mask===1?'🔵':mask===2?'🔴':'🔵🔴';b.appendChild(mark)}b.onclick=()=>claim(i);board.appendChild(b)}}}
+function claim(i){if(rolling||finished)return;if(selectedRow===null){$('diceStatus').textContent='Roll the dice first!';return}const r=Math.floor(i/6);if(r!==selectedRow){$('diceStatus').textContent='Choose a word in row '+(selectedRow+1);return}const bit=turn===1?1:2;const priorScores=[...scores];if(config.mode==='classic'){if(claims[i]){$('diceStatus').textContent='Already claimed!';return}claims[i]=bit;scoreClassic()}else{if(claims[i]&bit){$('diceStatus').textContent='Your team already claimed this!';return}claims[i]|=bit;scoreTrophy()}playFX('clickSound');if(scores[0]>priorScores[0]||scores[1]>priorScores[1]){setTimeout(()=>playFX('pointSound'),130)}selectedRow=null;turn=turn===1?2:1;$('diceStatus').textContent='Roll the dice!';updateUI();renderBoard();if((config.mode==='classic'&&claims.every(Boolean))||(config.mode==='trophy'&&trophies[0].size===6&&trophies[1].size===6))endGame()}
+function scoreClassic(){scores=[0,0];winCells=new Set();for(let team=1;team<=2;team++){for(let r=0;r<6;r++)for(let c=0;c<6;c++)for(const [dr,dc] of [[0,1],[1,0],[1,1],[1,-1]]){const positions=[];for(let k=0;k<3;k++){const y=r+dr*k,x=c+dc*k;if(y<0||y>=6||x<0||x>=6)break;positions.push(y*6+x)}if(positions.length===3&&positions.every(i=>claims[i]===team)){scores[team-1]++;positions.forEach(i=>winCells.add(i))}}}}
+function scoreTrophy(){scores=[0,0];for(let team=1;team<=2;team++){const bit=team===1?1:2,seen=new Set(),queue=[];for(let r=0;r<6;r++){const i=r*6;if(claims[i]&bit){seen.add(i);queue.push(i)}}for(let q=0;q<queue.length;q++){const i=queue[q],r=Math.floor(i/6),c=i%6;for(const [y,x] of [[r+1,c],[r-1,c],[r,c+1],[r,c-1]]){if(y<0||y>=6||x<0||x>=6)continue;const j=y*6+x;if(!seen.has(j)&&(claims[j]&bit)){seen.add(j);queue.push(j)}}}for(let r=0;r<6;r++)if(seen.has(r*6+5))trophies[team-1].add(r);scores[team-1]=trophies[team-1].size}}
+function updateUI(){$('name1').textContent=config.team1.toUpperCase();$('name2').textContent=config.team2.toUpperCase();$('score1').textContent=scores[0];$('score2').textContent=scores[1];$('team1').classList.toggle('active',!finished&&turn===1);$('team2').classList.toggle('active',!finished&&turn===2);$('turnStatus').textContent=finished?'Game over!':(turn===1?config.team1:config.team2)+"'s turn";$('subtitle').textContent=config.mode==='classic'?'Roll the dice. Read the word. Connect three dots.':'Roll the dice. Read the word. Reach the trophy!';updateTimerUI()}
+function formatTime(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+function updateTimerUI(){const s=config.duration?formatTime(timeLeft):'No Limit';$('timerLabel').textContent=s;$('bigTimer').textContent=s}
+function startTimer(){startMusic();if(timerHandle||finished||config.duration===0)return;timerHandle=setInterval(()=>{if(timeLeft>0)timeLeft--;updateTimerUI();if(timeLeft===0)endGame()},1000)}
+function pauseTimer(){if(timerHandle)clearInterval(timerHandle);timerHandle=null}
+function resetTimer(){pauseTimer();timeLeft=config.duration;updateTimerUI()}
+function endGame(){if(finished)return;finished=true;pauseTimer();updateUI();const who=scores[0]===scores[1]?"It's a tie!":(scores[0]>scores[1]?config.team1:config.team2)+' wins!';$('resultText').textContent=who+'  '+config.team1+': '+scores[0]+' | '+config.team2+': '+scores[1];openModal('resultsModal')}
+function exportJSON(){const obj={title:'Reading Roll Quest',version:2,settings:config,words:config.words};const url=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='reading-roll-quest.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+/* Compatibility reader: preserves Reading Roll Quest JSON files from older versions.
+   Only the words and recognized game settings are imported; unknown fields are ignored. */
+function textFromWord(item){
+  if(typeof item==='string'||typeof item==='number')return String(item).trim();
+  if(item&&typeof item==='object'){
+    for(const key of ['text','word','label','value','name','vocabulary']){
+      if(typeof item[key]==='string')return item[key].trim();
+    }
+  }
+  return '';
 }
-function hideModal(id){
-  $(id).classList.remove("open");
-}
-
-function beep(frequency=500,duration=.12){
-  if(!config.sound) return;
-  try{
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if(!AudioCtx) return;
-    if(!audioContext) audioContext = new AudioCtx();
-    if(audioContext.state==="suspended") audioContext.resume();
-    const oscillator=audioContext.createOscillator();
-    const gain=audioContext.createGain();
-    oscillator.type="sine";
-    oscillator.frequency.value=frequency;
-    gain.gain.setValueAtTime(.15,audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(
-      .001,audioContext.currentTime+duration
-    );
-    oscillator.connect(gain);
-    gain.connect(audioContext.destination);
-    oscillator.start();
-    oscillator.stop(audioContext.currentTime+duration);
-  }catch(e){}
-}
-
-function saveConfig(){
-  try{
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(config));
-  }catch(e){}
-}
-
-function loadConfig(){
-  try{
-    const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if(saved && typeof saved==="object"){
-      config={...config,...saved};
-      if(!Array.isArray(config.words)||!config.words.length){
-        config.words=[...DEFAULT_WORDS];
+function extractLegacyWords(data){
+  const seen=new Set();
+  function parse(input,depth=0){
+    if(depth>5||input==null)return null;
+    if(typeof input==='string'){
+      const trimmed=input.trim();
+      if(trimmed.startsWith('[')||trimmed.startsWith('{')){
+        try{return parse(JSON.parse(trimmed),depth+1)}catch(e){}
       }
+      return trimmed.includes('\n')||trimmed.includes(',')?
+        trimmed.split(/[\n,]+/).map(x=>x.trim()).filter(Boolean):null;
     }
-  }catch(e){}
-}
-
-function syncSettings(){
-  $("modeSelect").value=config.mode;
-  $("inputName1").value=config.team1;
-  $("inputName2").value=config.team2;
-  $("durationSelect").value=String(config.duration);
-  $("soundCheck").checked=config.sound;
-  $("wordInput").value=config.words.join("\n");
-}
-
-function applySettings(){
-  const newWords=$("wordInput").value.split(/\r?\n|,/)
-    .map(w=>w.trim()).filter(Boolean);
-  if(newWords.length===0){
-    alert("Please enter at least one phonics word.");
-    return;
-  }
-  config.mode=$("modeSelect").value;
-  config.team1=$("inputName1").value.trim()||"Team Blue";
-  config.team2=$("inputName2").value.trim()||"Team Red";
-  config.duration=Number($("durationSelect").value);
-  config.sound=$("soundCheck").checked;
-  config.words=newWords;
-  saveConfig();
-  hideModal("settingsModal");
-  resetGame();
-}
-
-function getBoardWords(){
-  const words=config.words.length ? config.words : DEFAULT_WORDS;
-  return Array.from({length:36},(_,i)=>words[i%words.length]);
-}
-
-let boardWords=[];
-
-function shuffleArray(array){
-  for(let i=array.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [array[i],array[j]]=[array[j],array[i]];
-  }
-  return array;
-}
-
-function shuffleWords(){
-  if(finished) return;
-  if(claims.some(c=>c!==0)){
-    if(!confirm("Shuffle the words and restart the game?")) return;
-  }
-  boardWords=shuffleArray(getBoardWords());
-  resetGame(false);
-}
-
-function createDiceFace(value){
-  const positions={
-    1:[4],
-    2:[0,8],
-    3:[0,4,8],
-    4:[0,2,6,8],
-    5:[0,2,4,6,8],
-    6:[0,2,3,5,6,8]
-  };
-  const dots=$("dice").querySelectorAll(".dot");
-  dots.forEach((dot,index)=>{
-    dot.classList.toggle("show",positions[value].includes(index));
-  });
-}
-
-function rollDice(){
-  if(rolling||finished) return;
-  if(rolledRow!==null){
-    $("diceStatus").textContent="Choose a word first!";
-    return;
-  }
-  rolling=true;
-  let count=0;
-  const interval=setInterval(()=>{
-    diceValue=Math.floor(Math.random()*6)+1;
-    createDiceFace(diceValue);
-    beep(250+count*20,.035);
-    count++;
-    if(count>=12){
-      clearInterval(interval);
-      rolling=false;
-      rolledRow=diceValue-1;
-      $("diceStatus").textContent="Row "+diceValue+" - Read a word!";
-      beep(760,.18);
-      renderBoard();
-      updateStatus();
-    }
-  },75);
-}
-
-function createCell(text,className,onclick){
-  const btn=document.createElement("button");
-  btn.type="button";
-  btn.className="cell "+className;
-  const span=document.createElement("span");
-  span.className="word";
-  span.textContent=text;
-  btn.appendChild(span);
-  if(onclick) btn.addEventListener("click",onclick);
-  return btn;
-}
-
-function renderBoard(){
-  const board=$("board");
-  board.innerHTML="";
-
-  for(let row=0;row<6;row++){
-    const diceCell=createCell("⚀⚁⚂⚃⚄⚅"[row],"row-dice",()=>{
-      if(!finished && !rolling && rolledRow===null){
-        $("diceStatus").textContent="Roll the big dice!";
+    if(Array.isArray(input)){
+      if(!input.length)return null;
+      // A row-by-row 6x6 board or array of word objects.
+      if(input.every(x=>Array.isArray(x)))return input.flatMap(row=>row.map(textFromWord)).filter(Boolean);
+      if(input.every(x=>typeof x==='string'||typeof x==='number'||(x&&typeof x==='object'&&!Array.isArray(x)&&['text','word','label','value','name','vocabulary'].some(k=>typeof x[k]==='string')))){
+        return input.map(textFromWord).filter(Boolean);
       }
-    });
-    if(rolledRow===row) diceCell.classList.add("selected");
-    board.appendChild(diceCell);
-
-    for(let col=0;col<6;col++){
-      const index=row*6+col;
-      const isTrophy=config.mode==="trophy"&&col===5;
-      const own=claims[index];
-
-      let cls="";
-      if(own===1) cls="blue-claim";
-      else if(own===2) cls="red-claim";
-      else if(own===3) cls="both-claim";
-
-      if(isTrophy) cls+=" trophy";
-      if(rolledRow===row) cls+=" target-row";
-
-      const label=isTrophy?"🏆":boardWords[index];
-      const cell=createCell(label,cls,()=>claimCell(index));
-
-      if(own){
-        const marker=document.createElement("span");
-        marker.className="marker";
-        marker.textContent=own===3?"🔵🔴":own===1?"🔵":"🔴";
-        cell.appendChild(marker);
-      }
-      board.appendChild(cell);
+      for(const item of input){const found=parse(item,depth+1);if(found?.length)return found}
+      return null;
     }
-  }
-}
-
-function claimCell(index){
-  if(finished||rolling) return;
-
-  const row=Math.floor(index/6);
-  if(rolledRow===null){
-    $("diceStatus").textContent="Please roll the dice first!";
-    beep(180,.12);
-    return;
-  }
-  if(row!==rolledRow){
-    $("diceStatus").textContent="Choose a word in row "+(rolledRow+1);
-    beep(180,.12);
-    return;
-  }
-
-  const old=claims[index];
-  const mask=activeTeam===1?1:2;
-
-  if(config.mode==="classic"){
-    if(old!==0){
-      $("diceStatus").textContent="That word is already claimed!";
-      beep(180,.12);
-      return;
+    if(typeof input==='object'){
+      if(seen.has(input))return null;seen.add(input);
+      const keys=['words','wordList','wordlist','word_list','vocabulary','vocabularyWords','phonicsWords','gameWords','boardWords','board1Words','board2Words','customWords','items','wordBank','wordSets','presets','sets','list','grid','board','data'];
+      for(const key of keys){if(Object.hasOwn(input,key)){const found=parse(input[key],depth+1);if(found?.length)return found}}
+      // Numeric-keyed row dictionaries used in some exported board formats.
+      const numericKeys=Object.keys(input).filter(k=>/^\d+$/.test(k)).sort((a,b)=>Number(a)-Number(b));
+      if(numericKeys.length){const found=parse(numericKeys.map(k=>input[k]),depth+1);if(found?.length)return found}
     }
-    claims[index]=mask;
-    updateClassicScores();
-  }else{
-    if(old&mask){
-      $("diceStatus").textContent="Your team already has this word!";
-      beep(180,.12);
-      return;
-    }
-    claims[index]=old|mask;
-    updateTrophyScores();
+    return null;
   }
-
-  beep(650,.13);
-
-  rolledRow=null;
-  activeTeam=activeTeam===1?2:1;
-  renderBoard();
-  updateStatus();
-  updateScoreboard();
-
-  if(config.mode==="classic"&&claims.every(c=>c!==0)){
-    endGame();
-  }
-  if(config.mode==="trophy"&&
-     trophyScores[0].size===6&&trophyScores[1].size===6){
-    endGame();
-  }
+  return parse(data);
 }
-
-function updateClassicScores(){
-  scores=[0,0];
-  const winningCells=new Set();
-
-  for(let team=1;team<=2;team++){
-    for(let row=0;row<6;row++){
-      for(let col=0;col<6;col++){
-        const directions=[[0,1],[1,0],[1,1],[1,-1]];
-        for(const [dr,dc] of directions){
-          const cells=[];
-          for(let step=0;step<3;step++){
-            const nr=row+dr*step;
-            const nc=col+dc*step;
-            if(nr<0||nr>=6||nc<0||nc>=6) break;
-            cells.push(nr*6+nc);
-          }
-          if(cells.length===3&&cells.every(i=>claims[i]===team)){
-            scores[team-1]++;
-            cells.forEach(i=>winningCells.add(i));
-          }
-        }
-      }
-    }
-  }
-}
-
-function updateTrophyScores(){
-  for(let team=1;team<=2;team++){
-    const mask=team===1?1:2;
-    const reachable=new Set();
-    const queue=[];
-
-    for(let row=0;row<6;row++){
-      const index=row*6;
-      if(claims[index]&mask){
-        queue.push(index);
-        reachable.add(index);
-      }
-    }
-
-    while(queue.length){
-      const current=queue.shift();
-      const row=Math.floor(current/6);
-      const col=current%6;
-      const neighbors=[
-        [row-1,col],[row+1,col],
-        [row,col-1],[row,col+1]
-      ];
-
-      for(const [nr,nc] of neighbors){
-        if(nr<0||nr>=6||nc<0||nc>=6) continue;
-        const next=nr*6+nc;
-        if(reachable.has(next)) continue;
-        if(!(claims[next]&mask)) continue;
-        reachable.add(next);
-        queue.push(next);
-      }
-    }
-
-    for(let row=0;row<6;row++){
-      const target=row*6+5;
-      if(reachable.has(target)){
-        if(!trophyScores[team-1].has(row)){
-          trophyScores[team-1].add(row);
-          beep(900,.3);
-        }
-      }
-    }
-    scores[team-1]=trophyScores[team-1].size;
-  }
-}
-
-function updateScoreboard(){
-  $("score1").textContent=scores[0];
-  $("score2").textContent=scores[1];
-  $("name1").textContent=config.team1.toUpperCase();
-  $("name2").textContent=config.team2.toUpperCase();
-
-  $("team1").classList.toggle("active",activeTeam===1&&!finished);
-  $("team2").classList.toggle("active",activeTeam===2&&!finished);
-}
-
-function updateStatus(){
-  const team=activeTeam===1?config.team1:config.team2;
-  $("turnStatus").textContent=finished?
-    "Game Over!":team+"'s turn";
-
-  $("subtitle").textContent=config.mode==="classic"?
-    "Roll the dice. Read the word. Connect three dots.":
-    "Roll the dice. Build a path. Reach the trophy!";
-}
-
-function formatTime(seconds){
-  const m=Math.floor(seconds/60);
-  const s=seconds%60;
-  return String(m).padStart(2,"0")+":"+
-         String(s).padStart(2,"0");
-}
-
-function updateTimerDisplay(){
-  const text=config.duration===0?"No Limit":formatTime(timeLeft);
-  $("timerLabel").textContent=text;
-  $("largeTimer").textContent=text;
-}
-
-function startTimer(){
-  if(timerRunning||finished||config.duration===0) return;
-  timerRunning=true;
-  timerHandle=setInterval(()=>{
-    if(timeLeft>0){
-      timeLeft--;
-      updateTimerDisplay();
-    }
-    if(timeLeft<=0){
-      pauseTimer();
-      endGame();
-    }
-  },1000);
-}
-
-function pauseTimer(){
-  clearInterval(timerHandle);
-  timerHandle=null;
-  timerRunning=false;
-}
-
-function resetTimer(){
-  pauseTimer();
-  timeLeft=config.duration;
-  updateTimerDisplay();
-}
-
-function resetGame(shuffle=false){
-  pauseTimer();
-  if(shuffle||boardWords.length!==36){
-    boardWords=getBoardWords();
-  }
-  claims=Array(36).fill(0);
-  scores=[0,0];
-  activeTeam=1;
-  rolledRow=null;
-  finished=false;
-  rolling=false;
-  trophyScores=[new Set(),new Set()];
-  timeLeft=config.duration;
-  createDiceFace(1);
-  $("diceStatus").textContent="Roll the dice!";
-  renderBoard();
-  updateScoreboard();
-  updateStatus();
-  updateTimerDisplay();
-}
-
-function endGame(){
-  if(finished) return;
-  finished=true;
-  pauseTimer();
-  rolledRow=null;
-  updateStatus();
-  updateScoreboard();
-
-  let winner;
-  if(scores[0]>scores[1]) winner="🏆 "+config.team1+" Wins!";
-  else if(scores[1]>scores[0]) winner="🏆 "+config.team2+" Wins!";
-  else winner="🤝 It's a Tie!";
-
-  $("resultText").innerHTML="";
-  const title=document.createElement("div");
-  title.textContent=winner;
-  const summary=document.createElement("p");
-  summary.style.fontSize="20px";
-  summary.textContent=config.team1+": "+scores[0]+
-    " | "+config.team2+": "+scores[1];
-  $("resultText").append(title,summary);
-  showModal("resultModal");
-  beep(880,.5);
-}
-
-function exportJSON(){
-  const data={
-    title:"Reading Roll Quest",
-    version:1,
-    settings:config,
-    words:config.words
-  };
-  const blob=new Blob([JSON.stringify(data,null,2)],{
-    type:"application/json"
-  });
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download="reading-roll-quest.json";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
-}
-
-function importJSON(event){
-  const file=event.target.files[0];
-  if(!file) return;
+function importJSON(e){
+  const file=e.target.files?.[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=()=>{
     try{
       const data=JSON.parse(reader.result);
-      const imported=data.settings||data;
-      const words=Array.isArray(data.words)?
-        data.words:imported.words;
-
-      if(!Array.isArray(words)||!words.length){
-        throw new Error("No word list found.");
+      if(!data||typeof data!=='object')throw Error('The JSON must contain a game or word list.');
+      const imported=extractLegacyWords(data);
+      if(!imported||!imported.length)throw Error('No recognizable word list found. Please share one of your old JSON files to add support for its exact structure.');
+      const opts=data.settings||data.config||data.gameSettings||data;
+      const next={...config,words:imported};
+      if(opts&&typeof opts==='object'){
+        const mode=opts.mode??opts.gameMode??opts.boardStyle;
+        if(mode==='classic'||mode==='board1'||mode===1||mode==='1')next.mode='classic';
+        if(mode==='trophy'||mode==='board2'||mode===2||mode==='2')next.mode='trophy';
+        const t1=opts.team1??opts.team1Name??opts.blueTeamName;
+        const t2=opts.team2??opts.team2Name??opts.redTeamName;
+        if(typeof t1==='string'&&t1.trim())next.team1=t1.trim();
+        if(typeof t2==='string'&&t2.trim())next.team2=t2.trim();
+        const duration=opts.duration??opts.timerDuration??opts.gameDuration;
+        if(Number.isFinite(Number(duration))&&Number(duration)>=0&&duration!==undefined)next.duration=Number(duration);
+        for(const key of ['musicEnabled','effectsEnabled'])if(typeof opts[key]==='boolean')next[key]=opts[key];
+        for(const key of ['musicVolume','effectsVolume'])if(Number.isFinite(Number(opts[key]))&&opts[key]!==undefined)next[key]=Math.max(0,Math.min(100,Number(opts[key])));
       }
-
-      config={
-        ...config,
-        ...imported,
-        words:words.map(w=>typeof w==="string"?w:String(w.text||w.word||""))
-          .filter(Boolean)
-      };
-      saveConfig();
-      syncSettings();
-      resetGame(true);
-      alert("JSON imported successfully!");
-    }catch(e){
-      alert("Could not import JSON: "+e.message);
-    }
-    event.target.value="";
+      config=next;save();syncInputs();resetGame(true);
+      alert('Imported '+imported.length+' words successfully!');
+    }catch(err){alert('Cannot import JSON: '+err.message)}
+    e.target.value='';
   };
   reader.readAsText(file);
 }
 
-function toggleFullscreen(){
-  if(!document.fullscreenElement){
-    document.documentElement.requestFullscreen?.().catch(()=>{});
-  }else{
-    document.exitFullscreen?.();
-  }
-}
-
-loadConfig();
-syncSettings();
-resetGame(true);
+load();syncInputs();resetGame(true);
+// Browsers restrict autoplay. Music begins with the first user interaction.
+document.addEventListener('pointerdown',function firstInteraction(){startMusic();document.removeEventListener('pointerdown',firstInteraction)},{once:true});
 </script>
-
 </body>
 </html>
